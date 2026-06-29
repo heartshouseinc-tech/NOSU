@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>LYRIC STUDIO</title>
+<style>
+:root{
+  --bg:#0a0814;--bg2:#120f1e;--bg3:#1a1528;--card:#161228;
+  --bor:rgba(180,120,255,.14);--bor2:rgba(180,120,255,.3);
+  --pur:#9333ea;--pur2:#7c3aed;--pur-xl:rgba(147,51,234,.12);
+  --pink:#ec4899;--pink-xl:rgba(236,72,153,.1);
+  --gold:#f0b830;--gold-xl:rgba(240,184,48,.1);
+  --grn:#10b981;--grn-xl:rgba(16,185,129,.1);
+  --red:#ef4444;--txt:#f5f0ff;--txt2:#a090c8;--txt3:#605080;
+  --r:14px;--r2:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--txt);font-family:'Hiragino Sans','Noto Sans JP',sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 10%,rgba(147,51,234,.06),transparent 50%),radial-gradient(ellipse at 70% 90%,rgba(236,72,153,.04),transparent 50%);pointer-events:none;}
+.hdr{background:rgba(10,8,20,.9);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--bor);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;z-index:2;}
+.hdr-title{font-size:16px;font-weight:900;background:linear-gradient(90deg,var(--pur),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hdr-right{display:flex;gap:6px;}
+.hdr-btn{padding:5px 10px;border-radius:20px;border:1.5px solid var(--bor2);background:transparent;color:var(--txt2);font-size:10px;cursor:pointer;font-family:inherit;}
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden;position:relative;z-index:1;}
+.screen.show{display:flex;}
+.scroll{flex:1;overflow-y:auto;padding:16px;}
+/* ログイン */
+.login-box{background:var(--card);border:1.5px solid var(--bor2);border-radius:var(--r);padding:20px;margin:20px 16px;}
+.login-title{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:14px;text-align:center;}
+.linp{width:100%;padding:10px 12px;background:var(--bg3);border:1.5px solid var(--bor);border-radius:var(--r2);color:var(--txt);font-size:13px;font-family:inherit;outline:none;margin-bottom:8px;}
+.linp:focus{border-color:var(--pur);}
+.lbtn{width:100%;padding:12px;border-radius:var(--r2);border:none;background:linear-gradient(135deg,var(--pur2),var(--pur));color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;}
+.lbtn-ghost{width:100%;padding:10px;border-radius:var(--r2);border:1.5px solid var(--bor2);background:transparent;color:var(--txt2);font-size:12px;cursor:pointer;font-family:inherit;}
+/* インタビュー */
+.lyra-avatar{text-align:center;margin-bottom:16px;}
+.lyra-ico{font-size:44px;display:block;margin-bottom:6px;}
+.lyra-name{font-size:14px;font-weight:900;color:var(--pur);}
+.lyra-title{font-size:10px;color:var(--txt3);}
+.prog-bar{background:rgba(255,255,255,.08);border-radius:20px;height:6px;margin-bottom:16px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--pur2),var(--pink));border-radius:20px;transition:width .4s;}
+.q-card{background:var(--card);border:1.5px solid var(--bor2);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.q-num{font-size:9px;font-weight:700;color:var(--pur);letter-spacing:1px;margin-bottom:6px;}
+.q-msg{font-size:13px;color:var(--txt);line-height:1.8;margin-bottom:12px;font-style:italic;}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.c-btn{background:var(--bg3);border:1.5px solid var(--bor);border-radius:var(--r2);padding:9px;text-align:center;cursor:pointer;font-size:12px;color:var(--txt2);font-family:inherit;}
+.c-btn.sel{border-color:var(--pur);background:var(--pur-xl);color:var(--txt);}
+.free-inp{width:100%;padding:10px 12px;background:var(--bg3);border:1.5px solid var(--bor);border-radius:var(--r2);color:var(--txt);font-size:12px;font-family:inherit;outline:none;margin-top:4px;}
+.free-inp:focus{border-color:var(--pur);}
+.lyra-reaction{background:var(--pur-xl);border-radius:var(--r2);padding:10px 14px;font-size:12px;color:var(--pur);line-height:1.7;margin-bottom:10px;display:none;}
+.next-btn{width:100%;padding:13px;border-radius:var(--r2);border:none;background:linear-gradient(135deg,var(--pur2),var(--pur));color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.skip-btn{width:100%;padding:9px;border-radius:var(--r2);border:1.5px solid var(--bor2);background:transparent;color:var(--txt3);font-size:12px;cursor:pointer;font-family:inherit;margin-top:6px;}
+/* 確認 */
+.conf-card{background:var(--card);border:1.5px solid var(--bor2);border-radius:var(--r);padding:14px;margin-bottom:12px;}
+.conf-row{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor);}
+.conf-row:last-child{border-bottom:none;}
+.conf-lbl{font-size:10px;color:var(--txt3);width:80px;flex-shrink:0;}
+.conf-val{font-size:12px;color:var(--txt);flex:1;line-height:1.7;}
+.sec-lbl{font-size:10px;font-weight:700;color:var(--txt3);letter-spacing:.5px;margin-bottom:8px;}
+.ta{width:100%;padding:10px 12px;background:var(--bg3);border:1.5px solid var(--bor);border-radius:var(--r2);color:var(--txt);font-size:12px;font-family:inherit;resize:none;outline:none;line-height:1.8;}
+.ta:focus{border-color:var(--pur);}
+.hint{font-size:10px;color:var(--txt3);margin-top:4px;line-height:1.6;}
+.tog-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.tog-lbl{font-size:12px;color:var(--txt2);}
+.tog-sw{width:44px;height:24px;border-radius:12px;background:var(--bg3);border:1.5px solid var(--bor2);position:relative;cursor:pointer;transition:.2s;}
+.tog-sw.on{background:var(--pur2);border-color:var(--pur);}
+.tog-knob{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:.2s;}
+.tog-sw.on .tog-knob{left:22px;}
+.btn-row{display:flex;gap:8px;}
+.btn{padding:12px;border-radius:var(--r2);border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex:1;}
+.btn-ghost{background:var(--bg3);border:1.5px solid var(--bor2);color:var(--txt2);}
+.btn-pur{background:linear-gradient(135deg,var(--pur2),var(--pur));color:#fff;}
+/* 進捗 */
+.ai-header{text-align:center;margin-bottom:20px;padding-top:10px;}
+.ai-spin{font-size:40px;animation:spin 2s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ai-txt{font-size:14px;font-weight:700;color:var(--txt);margin-top:8px;}
+.steps{background:var(--card);border:1.5px solid var(--bor);border-radius:var(--r);padding:16px;}
+.step-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--bor);}
+.step-row:last-child{border-bottom:none;}
+.step-ico{font-size:16px;width:24px;text-align:center;padding-top:1px;}
+.step-info{flex:1;}
+.step-name{font-size:12px;font-weight:700;color:var(--txt);}
+.step-det{font-size:10px;color:var(--txt3);margin-top:2px;}
+.st-status{font-size:10px;font-weight:700;}
+.st-wait{color:var(--txt3);}
+.st-run{color:var(--gold);animation:blink .8s infinite;}
+.st-done{color:var(--grn);}
+.st-fail{color:var(--red);}
+@keyframes blink{0%,100%{opacity:.5;}50%{opacity:1;}}
+.pills{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.pill{padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;background:var(--bg3);color:var(--txt3);}
+.pill.done{background:var(--grn-xl);color:var(--grn);}
+.pill.run{background:var(--gold-xl);color:var(--gold);}
+/* 完成 */
+.result-hdr{text-align:center;background:linear-gradient(135deg,var(--pur2),var(--pink));border-radius:var(--r);padding:16px;margin-bottom:14px;}
+.result-title{font-size:20px;font-weight:900;color:#fff;margin-bottom:4px;}
+.result-genre{font-size:11px;color:rgba(255,255,255,.7);}
+.sec-block{background:var(--card);border:1.5px solid var(--bor);border-radius:var(--r2);margin-bottom:8px;overflow:hidden;}
+.sec-hdr{background:var(--pur-xl);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;}
+.sec-tag{font-size:11px;font-weight:700;color:var(--pur);}
+.dir-badge{font-size:9px;padding:2px 8px;border-radius:10px;background:var(--grn-xl);color:var(--grn);}
+.edit-btn{padding:3px 8px;border-radius:10px;border:1px solid var(--bor2);background:transparent;color:var(--txt3);font-size:9px;cursor:pointer;font-family:inherit;}
+.sec-body{padding:12px;font-size:12px;color:var(--txt);line-height:2;white-space:pre-wrap;}
+.suno-card{background:var(--bg3);border:1.5px solid var(--bor2);border-radius:var(--r);padding:12px;margin-bottom:12px;}
+.suno-lbl{font-size:10px;font-weight:700;color:var(--gold);margin-bottom:6px;}
+.suno-style{font-size:11px;color:var(--txt2);line-height:1.7;}
+.act-btns{display:flex;flex-direction:column;gap:8px;}
+.act-btn{padding:13px;border-radius:var(--r2);border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;}
+.act-copy{background:linear-gradient(135deg,var(--pur2),var(--pur));color:#fff;}
+.act-save{background:var(--grn-xl);border:1.5px solid rgba(16,185,129,.3);color:var(--grn);}
+.act-chat{background:var(--pink-xl);border:1.5px solid rgba(236,72,153,.3);color:var(--pink);}
+.act-hist{background:var(--gold-xl);border:1.5px solid rgba(240,184,48,.3);color:var(--gold);}
+.act-redo{background:var(--bg3);border:1.5px solid var(--bor2);color:var(--txt2);}
+/* 履歴 */
+.hist-item{background:var(--card);border:1.5px solid var(--bor);border-radius:var(--r2);padding:12px;margin-bottom:8px;cursor:pointer;}
+.hist-title{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:3px;}
+.hist-meta{font-size:10px;color:var(--txt3);}
+.empty{text-align:center;padding:30px;color:var(--txt3);font-size:12px;}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--pur2);color:#fff;padding:8px 18px;border-radius:20px;font-size:11px;font-weight:700;z-index:9999;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;}
+#toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="hdr-title">LYRIC STUDIO</div>
+    <div style="font-size:9px;color:var(--txt3);">5AIが協力してあなたの歌詞を作る</div>
+  </div>
+  <div class="hdr-right">
+    <button class="hdr-btn" id="hist-btn" onclick="showScreen('s-history')" style="display:none;">履歴</button>
+    <button class="hdr-btn" id="logout-btn" onclick="doLogout()" style="display:none;">ログアウト</button>
+    <button class="hdr-btn" onclick="resetAll()">最初から</button>
+  </div>
+</div>
+
+<!-- ログイン画面 -->
+<div id="s-login" class="screen show">
+  <div class="scroll">
+    <div style="text-align:center;padding:30px 0 20px;">
+      <div style="font-size:48px;margin-bottom:10px;">🎤</div>
+      <div style="font-size:20px;font-weight:900;color:var(--txt);margin-bottom:4px;">LYRIC STUDIO</div>
+      <div style="font-size:11px;color:var(--txt3);">5AIが協力して本格的な歌詞を作る</div>
+    </div>
+    <div class="login-box">
+      <div class="login-title">ログインして歌詞を保存する</div>
+      <input class="linp" id="l-email" type="email" placeholder="メールアドレス">
+      <input class="linp" id="l-pass" type="password" placeholder="パスワード">
+      <button class="lbtn" onclick="doLogin()">ログイン</button>
+      <button class="lbtn-ghost" onclick="startWithoutLogin()">ログインせずに使う（保存不可）</button>
+    </div>
+  </div>
+</div>
+
+<!-- インタビュー画面 -->
+<div id="s-interview" class="screen">
+  <div class="scroll">
+    <div class="lyra-avatar">
+      <span class="lyra-ico">🎤</span>
+      <div class="lyra-name">LYRA</div>
+      <div class="lyra-title">AIミュージックプロデューサー</div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="q-prog" style="width:14%"></div></div>
+    <div id="lyra-reaction" class="lyra-reaction"></div>
+    <div class="q-card" id="q-card"></div>
+    <button class="next-btn" onclick="nextQuestion()">次の質問 →</button>
+    <button class="skip-btn" id="skip-btn" onclick="skipQuestion()" style="display:none;">スキップ →</button>
+  </div>
+</div>
+
+<!-- 確認＋固定歌詞 -->
+<div id="s-confirm" class="screen">
+  <div class="scroll">
+    <div style="font-size:14px;font-weight:700;color:var(--txt);margin-bottom:12px;text-align:center;">✅ インタビュー完了！</div>
+    <div class="conf-card" id="conf-rows"></div>
+    <div class="conf-card">
+      <div class="sec-lbl">🔒 絶対に入れたいフレーズ（固定歌詞）</div>
+      <textarea class="ta" id="fixed-lyrics" rows="3" placeholder="ここに書いたフレーズはそのまま歌詞に入ります&#10;例：「さよならは言わないよ」&#10;なければ空欄でOK"></textarea>
+      <div class="hint">※ AIは変更しません。そのまま使用されます。</div>
+    </div>
+    <div class="conf-card">
+      <div class="sec-lbl">✏️ カスタム入力（AI脚色あり）</div>
+      <div class="tog-row">
+        <div class="tog-sw on" id="dec-tog" onclick="toggleDecorate()"><div class="tog-knob"></div></div>
+        <div class="tog-lbl" id="dec-lbl">AIが詩的に脚色する</div>
+      </div>
+      <textarea class="ta" id="custom-input" rows="3" placeholder="イメージや言葉のかけらを入力&#10;例：「駅のホーム、背中を見ていた」&#10;なければ空欄でOK"></textarea>
+    </div>
+    <div class="btn-row" style="margin-top:4px;">
+      <button class="btn btn-ghost" onclick="showScreen('s-interview')">← やり直す</button>
+      <button class="btn btn-pur" onclick="startCreation()">⚡ 作詞開始</button>
+    </div>
+  </div>
+</div>
+
+<!-- 5AI進捗 -->
+<div id="s-progress" class="screen">
+  <div class="scroll">
+    <div class="ai-header">
+      <div class="ai-spin">🎵</div>
+      <div class="ai-txt" id="ai-txt">5つのAIが協力中...</div>
+    </div>
+    <div class="steps">
+      <div class="step-row"><div class="step-ico">🌍</div><div class="step-info"><div class="step-name">コンセプトAI</div><div class="step-det">世界観・感情アーク設計（Google検索）</div></div><div class="st-status st-wait" id="st1">待機</div></div>
+      <div class="step-row"><div class="step-ico">📋</div><div class="step-info"><div class="step-name">構成AI</div><div class="step-det">セクション別感情・韻設計</div></div><div class="st-status st-wait" id="st2">待機</div></div>
+      <div class="step-row"><div class="step-ico">✍️</div><div class="step-info"><div class="step-name">作詞AI</div><div class="step-det">各セクションを並列生成</div><div class="pills" id="pills"></div></div><div class="st-status st-wait" id="st3">待機</div></div>
+      <div class="step-row"><div class="step-ico">🎬</div><div class="step-info"><div class="step-name">ディレクターAI</div><div class="step-det">韻・音節・感情を審査・修正</div></div><div class="st-status st-wait" id="st4">待機</div></div>
+      <div class="step-row"><div class="step-ico">🚀</div><div class="step-info"><div class="step-name">Suno変換AI</div><div class="step-det">Sunoフォーマット・スタイル生成</div></div><div class="st-status st-wait" id="st5">待機</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 完成 -->
+<div id="s-result" class="screen">
+  <div class="scroll">
+    <div class="result-hdr">
+      <div class="result-title" id="r-title">タイトル</div>
+      <div class="result-genre" id="r-genre">ジャンル</div>
+    </div>
+    <div id="lyric-blocks"></div>
+    <div class="suno-card">
+      <div class="suno-lbl">🎵 Sunoスタイルフィールド</div>
+      <div class="suno-style" id="suno-style"></div>
+    </div>
+    <div class="act-btns">
+      <button class="act-btn act-copy" onclick="copyAll()">📋 Sunoにコピー（全文）</button>
+      <button class="act-btn act-save" id="save-btn" onclick="saveSong()">💾 保存する</button>
+      <button class="act-btn act-chat" onclick="sendToChat()">💬 music-chatでさらに磨く</button>
+      <button class="act-btn act-hist" id="hist-act-btn" onclick="showScreen('s-history')" style="display:none;">📚 保存済みを見る</button>
+      <button class="act-btn act-redo" onclick="resetAll()">🔄 最初から作り直す</button>
+    </div>
+  </div>
+</div>
+
+<!-- 履歴 -->
+<div id="s-history" class="screen">
+  <div class="scroll">
+    <div style="font-size:14px;font-weight:700;color:var(--txt);margin-bottom:12px;">📚 保存済みの歌詞</div>
+    <div id="hist-list"><div class="empty">まだ保存した歌詞がありません</div></div>
+    <button class="btn btn-ghost btn-full" onclick="showScreen('s-result')" style="width:100%;margin-top:12px;">← 戻る</button>
+  </div>
+</div>
+
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import{getFirestore,collection,doc,setDoc,getDoc,getDocs,orderBy,query,serverTimestamp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const app=initializeApp({apiKey:'AIzaSyCVk2miG5TK1ffTofXLh0hHgeSbOvmIgZ8',authDomain:'kensetsu-nippo-842a2.firebaseapp.com',projectId:'kensetsu-nippo-842a2',storageBucket:'kensetsu-nippo-842a2.firebasestorage.app',messagingSenderId:'702880974315',appId:'1:702880974315:web:985321dc9180046629c5ae'});
+const auth=getAuth(app);const db=getFirestore(app);
+window.__fw={auth,db,signInWithEmailAndPassword,signOut,onAuthStateChanged,collection,doc,setDoc,getDocs,query,orderBy,serverTimestamp};
+onAuthStateChanged(auth,function(user){
+  if(user){
+    window.__currentUser=user;
+    document.getElementById('logout-btn').style.display='block';
+    document.getElementById('hist-btn').style.display='block';
+    document.getElementById('hist-act-btn').style.display='block';
+    document.getElementById('save-btn').style.display='block';
+    if(document.getElementById('s-login').classList.contains('show')) showScreen('s-interview');
+  }else{
+    window.__currentUser=null;
+    document.getElementById('logout-btn').style.display='none';
+    document.getElementById('hist-btn').style.display='none';
+  }
+});
+</script>
+<script>
+var EP='https://us-central1-kensetsu-nippo-842a2.cloudfunctions.net/askAI';
+var KEY='HeartsHouse2026Key';
+var SUNO_RULES='Sunoルール：Styleは英語120文字以内・アーティスト名禁止。歌詞は日本語。[Verse][Chorus][Bridge][Pre-Chorus]等のメタタグで展開制御。1行12〜20文字。韻を踏む（行末母音を揃える）。';
+var decorateMode=true;
+var answers={};
+var currentQ=0;
+var concept={};
+var structure={};
+var sections={};
+var dirResults={};
+var sunoData={};
+
+var QUESTIONS=[
+  {id:'emotion',msg:'どんな気持ちを歌にしたいですか？',choices:['悲しみ・切なさ','喜び・幸せ','怒り・叫び','恋愛・ときめき','孤独・空虚','希望・前向き','後悔・未練','感謝・愛'],free:true,skip:false},
+  {id:'scene',msg:'どんな場面や風景が浮かびますか？',choices:['雨の夜','駅・別れ','海・夕暮れ','街灯の下','冬の朝','春の桜','夜の部屋','誰もいない場所'],free:true,skip:false},
+  {id:'target',msg:'誰に届けたい歌ですか？',choices:['元恋人','今の恋人','自分自身','大切な友達','もう会えない人','世界中の人'],free:true,skip:false},
+  {id:'genre',msg:'音楽のジャンル・雰囲気は？',choices:['J-Pop','シティポップ','バラード','ロック','アニソン風','R&B','歌謡曲','ラップ'],free:true,skip:false},
+  {id:'tempo',msg:'テンポのイメージは？',choices:['ゆっくり・しんみり','ミドルテンポ','アップテンポ','疾走感・激しい'],free:false,skip:false},
+  {id:'keyword',msg:'必ず入れたいキーワードや言葉はありますか？',choices:[],free:true,skip:true},
+  {id:'ng',msg:'使いたくない表現はありますか？',choices:[],free:true,skip:true}
+];
+var LYRA_MSG=['','いいですね！その感情、刺さる歌詞になりそうです。','その場面、詩的で素晴らしい。','伝える相手が決まると、歌詞に魂が宿ります。','そのジャンル、得意ですよ！','テンポが決まると世界観がぐっと絞れます。','ありがとうございます。大切に使います。','了解です。その方向で進めます。'];
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+var _tt;
+function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('show');},3000);}
+function showScreen(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('show');});document.getElementById(id).classList.add('show');}
+function setStep(n,s){var e=document.getElementById('st'+n);if(!e)return;var l={wait:'待機',run:'処理中...',done:'完了',fail:'失敗'};e.className='st-status st-'+s;e.textContent=l[s]||s;}
+
+async function callAI(prompt,schema,search){
+  var body={model:'gemini-2.5-flash',mode:'normal',prompt:prompt,useSearch:!!search,useCache:false};
+  if(schema) body.responseSchema=schema;
+  var r=await fetch(EP,{method:'POST',headers:{'Content-Type':'application/json','x-access-key':KEY},body:JSON.stringify(body)});
+  var d=await r.json().catch(function(){return{};});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return d?.data?.text||d?.candidates?.[0]?.content?.parts?.[0]?.text||d?.text||'';
+}
+
+// ログイン
+window.doLogin=async function(){
+  var e=document.getElementById('l-email').value.trim();
+  var p=document.getElementById('l-pass').value;
+  if(!e||!p){showToast('メールとパスワードを入力してください');return;}
+  try{
+    var fw=window.__fw;
+    await fw.signInWithEmailAndPassword(fw.auth,e,p);
+    showToast('ログイン完了');
+  }catch(err){showToast('ログイン失敗: '+err.message.slice(0,30));}
+};
+window.startWithoutLogin=function(){showScreen('s-interview');};
+window.doLogout=async function(){
+  try{await window.__fw.signOut(window.__fw.auth);}catch(e){}
+  showToast('ログアウトしました');
+  showScreen('s-login');
+};
+
+// インタビュー
+function renderQ(idx){
+  var q=QUESTIONS[idx];
+  document.getElementById('q-prog').style.width=(Math.round((idx/QUESTIONS.length)*100)+14)+'%';
+  var html='<div class="q-num">質問 '+(idx+1)+' / '+QUESTIONS.length+'</div>';
+  html+='<div class="q-msg">'+esc(q.msg)+'</div>';
+  if(q.choices.length){
+    html+='<div class="choice-grid">';
+    q.choices.forEach(function(c){html+='<button class="c-btn" onclick="selectC(this,\''+esc(c)+'\')" data-val="'+esc(c)+'">'+esc(c)+'</button>';});
+    html+='</div>';
+  }
+  if(q.free) html+='<input class="free-inp" id="free-inp" placeholder="または自由に入力...">';
+  document.getElementById('q-card').innerHTML=html;
+  var reaction=document.getElementById('lyra-reaction');
+  if(idx>0&&LYRA_MSG[idx]){reaction.textContent=LYRA_MSG[idx];reaction.style.display='block';}
+  else{reaction.style.display='none';}
+  document.getElementById('skip-btn').style.display=q.skip?'block':'none';
+}
+window.selectC=function(btn,val){document.querySelectorAll('.c-btn').forEach(function(b){b.classList.remove('sel');});btn.classList.add('sel');var i=document.getElementById('free-inp');if(i)i.value='';};
+window.skipQuestion=function(){answers[QUESTIONS[currentQ].id]='';currentQ++;if(currentQ>=QUESTIONS.length)showConfirm();else renderQ(currentQ);};
+window.nextQuestion=function(){
+  var q=QUESTIONS[currentQ];
+  var sel=document.querySelector('.c-btn.sel');
+  var free=document.getElementById('free-inp');
+  var val='';
+  if(sel)val=sel.getAttribute('data-val');
+  if(free&&free.value.trim())val=free.value.trim();
+  if(!val&&!q.skip){showToast('選択または入力してください');return;}
+  answers[q.id]=val;currentQ++;
+  if(currentQ>=QUESTIONS.length)showConfirm();else renderQ(currentQ);
+};
+
+function showConfirm(){
+  var labels={emotion:'感情',scene:'場面',target:'対象',genre:'ジャンル',tempo:'テンポ',keyword:'キーワード',ng:'禁止'};
+  var html='';
+  QUESTIONS.forEach(function(q){html+='<div class="conf-row"><div class="conf-lbl">'+esc(labels[q.id])+'</div><div class="conf-val">'+esc(answers[q.id]||'（なし）')+'</div></div>';});
+  document.getElementById('conf-rows').innerHTML=html;
+  showScreen('s-confirm');
+}
+window.toggleDecorate=function(){decorateMode=!decorateMode;document.getElementById('dec-tog').classList.toggle('on',decorateMode);document.getElementById('dec-lbl').textContent=decorateMode?'AIが詩的に脚色する':'そのまま使用する';};
+
+// 5AI作詞
+window.startCreation=async function(){
+  var fixedLyrics=document.getElementById('fixed-lyrics').value.trim();
+  var customInput=document.getElementById('custom-input').value.trim();
+  showScreen('s-progress');
+  try{
+    var chords=[];try{chords=JSON.parse(localStorage.getItem('mc_chords')||'[]');}catch(e){}
+    var dbInfo=chords.length?'参考コード進行：'+chords.slice(0,3).map(function(c){return c.name||c.code||'';}).join('・'):'';
+    var fixedNote=fixedLyrics?'\n固定フレーズ（必ずそのまま歌詞に含める）：\n'+fixedLyrics:'';
+    var customNote=customInput?(decorateMode?'\nユーザーのイメージを詩的に膨らませて使用：'+customInput:'\nユーザー表現をそのまま使用：'+customInput):'';
+
+    // AI①：コンセプト（Google検索）
+    setStep(1,'run');document.getElementById('ai-txt').textContent='AI① コンセプト設計中（Google検索）...';
+    var conceptSchema={type:'object',properties:{world:{type:'string'},emotion_arc:{type:'string'},keywords:{type:'array',items:{type:'string'}},sound_image:{type:'string'},title_candidate:{type:'string'},suno_style:{type:'string'}},required:['world','emotion_arc','keywords','title_candidate','suno_style']};
+    var cp=SUNO_RULES+'\n楽曲コンセプトをJSON形式で設計してください。\n感情:'+answers.emotion+' 場面:'+answers.scene+' 対象:'+answers.target+' ジャンル:'+answers.genre+' テンポ:'+answers.tempo+(answers.keyword?' KW:'+answers.keyword:'')+(answers.ng?' NG:'+answers.ng:'')+'\n'+dbInfo+fixedNote+customNote;
+    var rawC=await callAI(cp,conceptSchema,true);
+    concept=JSON.parse(rawC.replace(/```json|```/g,'').trim());
+    setStep(1,'done');
+
+    // AI②：構成
+    setStep(2,'run');document.getElementById('ai-txt').textContent='AI② セクション構成設計中...';
+    var structSchema={type:'object',properties:{Verse1:{type:'string'},PreChorus:{type:'string'},Chorus:{type:'string'},Verse2:{type:'string'},Bridge:{type:'string'},Outro:{type:'string'}},required:['Verse1','PreChorus','Chorus','Verse2','Bridge','Outro']};
+    var sp=SUNO_RULES+'\nコンセプト：'+JSON.stringify(concept)+'\n各セクションの感情・内容・韻のヒントを設計してください。JSON形式で。';
+    var rawS=await callAI(sp,structSchema,false);
+    try{structure=JSON.parse(rawS.replace(/```json|```/g,'').trim());}
+    catch(e){structure={Verse1:'回想',PreChorus:'高まり',Chorus:'感情爆発',Verse2:'現実',Bridge:'転換',Outro:'余韻'};}
+    setStep(2,'done');
+
+    // AI③：並列作詞
+    setStep(3,'run');document.getElementById('ai-txt').textContent='AI③ 各セクションを並列作詞中...';
+    var secList=['Verse1','PreChorus','Chorus','Verse2','Bridge','Outro'];
+    document.getElementById('pills').innerHTML=secList.map(function(s){return '<span class="pill" id="pill-'+s+'">'+s+'</span>';}).join('');
+    var writerSys='あなたは世界一の日本語作詞家AIです。'+SUNO_RULES+'\n与えられた情報でセクションの歌詞を執筆します。最高の歌詞を書くことだけに集中します。';
+    await Promise.all(secList.map(function(s){
+      var pill=document.getElementById('pill-'+s);
+      if(pill)pill.className='pill run';
+      var wp=writerSys+'\n世界観:'+concept.world+'\n感情アーク:'+concept.emotion_arc+'\nKW:'+(concept.keywords||[]).join('・')+'\nジャンル:'+answers.genre+'\n'+s+'の指示:'+structure[s]+(answers.ng?'\nNG:'+answers.ng:'')+fixedNote+customNote+'\n\n'+s+'の歌詞を4〜8行で。日本語のみ。歌詞本文だけ出力。';
+      return callAI(wp,null,false).then(function(l){sections[s]=l.trim();if(pill)pill.className='pill done';});
+    }));
+    setStep(3,'done');
+
+    // AI④：ディレクター審査（最弱セクション修正）
+    setStep(4,'run');document.getElementById('ai-txt').textContent='AI④ ディレクターが審査中...';
+    var allLyrics=secList.map(function(s){return '['+s+']\n'+sections[s];}).join('\n\n');
+    var dirSys='あなたは世界一の音楽ディレクターAIです。歌詞を審査します。基準：韻の整合性・音節数・感情の流れ・Sunoで生成できるか・日本語として自然か。';
+    var dirP=dirSys+'\n以下の歌詞で最も弱いセクション名を1つだけ答えてください（セクション名のみ）。\n'+allLyrics;
+    var weakSec=(await callAI(dirP,null,false)).trim().replace(/[\[\]「」]/g,'');
+    if(secList.indexOf(weakSec)>=0){
+      var fixP='あなたは世界一の日本語作詞家AIです。\n'+SUNO_RULES+'\n以下の'+weakSec+'の歌詞は弱いです。感情を強く・具体的イメージを使って書き直してください。\n現在:\n'+sections[weakSec]+(answers.ng?'\nNG:'+answers.ng:'')+fixedNote+'\n書き直した歌詞本文のみ出力。';
+      sections[weakSec]=await callAI(fixP,null,false);
+      dirResults[weakSec]='修正済み';
+    }
+    setStep(4,'done');
+
+    // AI⑤：Suno変換
+    setStep(5,'run');document.getElementById('ai-txt').textContent='AI⑤ Sunoフォーマットに変換中...';
+    var sunoSchema={type:'object',properties:{title:{type:'string'},lyrics:{type:'string'},style:{type:'string'}},required:['title','lyrics','style']};
+    allLyrics=secList.map(function(s){return '['+s+']\n'+sections[s];}).join('\n\n');
+    var sunoP=SUNO_RULES+'\n以下の歌詞をSuno AI用フォーマットに変換してください。\nタイトル案：'+concept.title_candidate+'\n参考スタイル：'+concept.suno_style+'\nタグ[Verse 1][Pre-Chorus][Chorus][Verse 2][Bridge][Outro]を付ける。\nstyleは英語のみ120文字以内。lyricsは900文字以内。\n\n歌詞：\n'+allLyrics;
+    var rawSuno=await callAI(sunoP,sunoSchema,false);
+    sunoData=JSON.parse(rawSuno.replace(/```json|```/g,'').trim());
+    setStep(5,'done');
+
+    showResult();
+  }catch(e){
+    document.getElementById('ai-txt').textContent='エラー: '+e.message.slice(0,50);
+    showToast('エラー: '+e.message.slice(0,40));
+  }
+};
+
+function showResult(){
+  document.getElementById('r-title').textContent=sunoData.title||concept.title_candidate||'無題';
+  document.getElementById('r-genre').textContent=answers.genre+' / '+answers.tempo;
+  document.getElementById('suno-style').textContent=sunoData.style||'';
+  var secs=['Verse1','PreChorus','Chorus','Verse2','Bridge','Outro'];
+  var html='';
+  secs.forEach(function(s){
+    if(!sections[s])return;
+    var badge=dirResults[s]?'<span class="dir-badge">ディレクター修正済み</span>':'';
+    html+='<div class="sec-block"><div class="sec-hdr"><span class="sec-tag">['+s+']</span><div style="display:flex;gap:6px;align-items:center;">'+badge+'<button class="edit-btn" onclick="editSec(\''+s+'\')">編集</button></div></div><div class="sec-body" id="sb-'+s+'">'+esc(sections[s])+'</div></div>';
+  });
+  document.getElementById('lyric-blocks').innerHTML=html;
+  try{var p=JSON.parse(localStorage.getItem('mc_prompts')||'[]');p.push({id:'p_'+Date.now(),name:sunoData.title||'歌詞',body:sunoData.lyrics||'',tags:['lyric-studio'],addedAt:new Date().toLocaleString('ja-JP')});localStorage.setItem('mc_prompts',JSON.stringify(p));}catch(e){}
+  showScreen('s-result');
+}
+
+window.editSec=function(s){
+  var body=document.getElementById('sb-'+s);if(!body)return;
+  var ta=document.createElement('textarea');
+  ta.style.cssText='width:100%;min-height:120px;padding:10px;background:var(--bg3);border:1.5px solid var(--pur);border-radius:8px;color:var(--txt);font-size:12px;font-family:inherit;resize:vertical;outline:none;line-height:1.8;';
+  ta.value=sections[s]||'';body.innerHTML='';body.appendChild(ta);
+  var btn=document.createElement('button');
+  btn.style.cssText='margin-top:6px;padding:7px 16px;border-radius:20px;border:none;background:var(--pur);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;';
+  btn.textContent='保存';btn.onclick=function(){sections[s]=ta.value;body.textContent=ta.value;};
+  body.appendChild(btn);
+};
+
+window.copyAll=function(){
+  var text='[Lyrics]\n'+(sunoData.lyrics||'')+'\n\n[Style]\n'+(sunoData.style||'');
+  if(navigator.clipboard)navigator.clipboard.writeText(text).then(function(){showToast('Sunoにコピーしました！');});
+};
+
+window.saveSong=async function(){
+  var user=window.__currentUser;
+  if(!user){showToast('保存にはログインが必要です');showScreen('s-login');return;}
+  try{
+    var fw=window.__fw;
+    var id='song_'+Date.now();
+    await fw.setDoc(fw.doc(fw.db,'lyric_works/'+user.uid+'/songs/'+id),{
+      title:sunoData.title||'無題',genre:answers.genre||'',tempo:answers.tempo||'',
+      sections:sections,sunoLyrics:sunoData.lyrics||'',sunoStyle:sunoData.style||'',
+      answers:answers,createdAt:fw.serverTimestamp()
+    });
+    showToast('保存しました：'+sunoData.title);
+  }catch(e){showToast('保存エラー: '+e.message.slice(0,30));}
+};
+
+window.sendToChat=function(){
+  localStorage.setItem('mc_pending_style',sunoData.style||'');
+  localStorage.setItem('mc_pending_lyrics',sunoData.lyrics||'');
+  showToast('music-chatに送りました');
+  window.open('music-chat.html','_blank');
+};
+
+window.showScreen=showScreen;
+
+// 履歴
+document.getElementById('hist-btn')&&document.getElementById('hist-btn').addEventListener('click',async function(){
+  showScreen('s-history');
+  var user=window.__currentUser;
+  if(!user){document.getElementById('hist-list').innerHTML='<div class="empty">ログインが必要です</div>';return;}
+  try{
+    var fw=window.__fw;
+    var snap=await fw.getDocs(fw.query(fw.collection(fw.db,'lyric_works/'+user.uid+'/songs'),fw.orderBy('createdAt','desc')));
+    if(snap.empty){document.getElementById('hist-list').innerHTML='<div class="empty">まだ保存した歌詞がありません</div>';return;}
+    var html='';
+    snap.forEach(function(d){
+      var data=d.data();
+      html+='<div class="hist-item" onclick="loadSong(\''+d.id+'\',\''+user.uid+'\')">'
+        +'<div class="hist-title">'+esc(data.title||'無題')+'</div>'
+        +'<div class="hist-meta">'+esc(data.genre||'')+(data.tempo?' / '+data.tempo:'')+'</div></div>';
+    });
+    document.getElementById('hist-list').innerHTML=html;
+  }catch(e){document.getElementById('hist-list').innerHTML='<div class="empty">エラー: '+e.message+'</div>';}
+});
+
+window.loadSong=async function(id,uid){
+  try{
+    var fw=window.__fw;
+    var snap=await fw.getDocs(fw.collection(fw.db,'lyric_works/'+uid+'/songs'));
+    snap.forEach(function(d){
+      if(d.id===id){
+        var data=d.data();
+        sections=data.sections||{};
+        sunoData={title:data.title,lyrics:data.sunoLyrics,style:data.sunoStyle};
+        answers=data.answers||{};
+        concept={title_candidate:data.title};
+        dirResults={};
+        showResult();
+      }
+    });
+  }catch(e){showToast('読み込みエラー');}
+};
+
+window.resetAll=function(){
+  answers={};concept={};structure={};sections={};dirResults={};sunoData={};currentQ=0;decorateMode=true;
+  document.getElementById('dec-tog').classList.add('on');
+  document.getElementById('dec-lbl').textContent='AIが詩的に脚色する';
+  renderQ(0);showScreen('s-interview');
+};
+
+// 起動
+renderQ(0);
+</script>
+</body>
+</html>
