@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>MUSIC TRAINER</title>
+<style>
+:root{
+  --bg:#080610;--bg2:#100e1a;--bg3:#181624;--card:#120f1e;
+  --bor:rgba(240,184,48,.14);--bor2:rgba(240,184,48,.3);
+  --gold:#f0b830;--gold2:#d4960a;--gold-xl:rgba(240,184,48,.1);
+  --pur:#9333ea;--pink:#ec4899;--grn:#10b981;--grn-xl:rgba(16,185,129,.1);
+  --red:#ef4444;--blue:#3b82f6;
+  --txt:#fff8f0;--txt2:#b09060;--txt3:#605040;
+  --r:14px;--r2:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--txt);font-family:'Hiragino Sans','Noto Sans JP',sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
+.hdr{background:rgba(8,6,16,.9);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--bor);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.hdr-title{font-size:15px;font-weight:900;background:linear-gradient(90deg,var(--gold),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.tabs{display:flex;background:var(--bg3);border-bottom:2px solid var(--bor);flex-shrink:0;}
+.tab{flex:1;padding:10px 4px;border:none;background:none;color:var(--txt3);font-size:9px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.tab .ti{font-size:18px;}
+.tab.on{color:var(--gold);border-bottom:3px solid var(--gold);margin-bottom:-2px;background:var(--gold-xl);}
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.screen.show{display:flex;}
+.scroll{flex:1;overflow-y:auto;padding:14px;}
+.card{background:var(--card);border:1.5px solid var(--bor);border-radius:var(--r);padding:14px;margin-bottom:12px;}
+.card-title{font-size:11px;font-weight:700;color:var(--gold);margin-bottom:10px;letter-spacing:.5px;}
+.btn{padding:12px;border-radius:var(--r2);border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-gold{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#000;}
+.btn-ghost{background:var(--bg3);border:1.5px solid var(--bor2);color:var(--txt2);}
+.btn-grn{background:var(--grn-xl);border:1.5px solid rgba(16,185,129,.3);color:var(--grn);}
+.btn-red{background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3);color:var(--red);}
+.btn-full{width:100%;}
+.btn-row{display:flex;gap:8px;}
+/* 解析 */
+.upload-area{border:2px dashed var(--bor2);border-radius:var(--r);padding:30px;text-align:center;cursor:pointer;margin-bottom:12px;}
+.upload-ico{font-size:40px;margin-bottom:8px;}
+.upload-txt{font-size:12px;color:var(--txt2);}
+.progress-ring{width:80px;height:80px;margin:0 auto 12px;position:relative;}
+.progress-ring svg{transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:var(--bg3);stroke-width:6;}
+.ring-fill{fill:none;stroke:var(--gold);stroke-width:6;stroke-dasharray:220;stroke-dashoffset:220;transition:stroke-dashoffset .5s;}
+.ring-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:var(--gold);}
+.freq-bar{height:40px;background:var(--bg3);border-radius:var(--r2);margin-bottom:8px;overflow:hidden;position:relative;}
+canvas#freq-canvas{width:100%;height:100%;display:block;}
+.result-chord{background:linear-gradient(135deg,var(--gold2),var(--gold));border-radius:var(--r);padding:16px;text-align:center;margin-bottom:12px;}
+.result-chord-name{font-size:22px;font-weight:900;color:#000;margin-bottom:4px;}
+.result-chord-sub{font-size:11px;color:rgba(0,0,0,.7);}
+.emotion-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.etag{padding:4px 10px;border-radius:20px;border:1.5px solid var(--bor2);font-size:10px;color:var(--txt2);cursor:pointer;}
+.etag.sel{background:var(--gold-xl);border-color:var(--gold);color:var(--gold);}
+/* ライブラリ */
+.lib-item{background:var(--card);border:1.5px solid var(--bor);border-radius:var(--r2);padding:12px;margin-bottom:8px;cursor:pointer;}
+.lib-item:active{background:var(--gold-xl);}
+.lib-name{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:3px;}
+.lib-meta{font-size:10px;color:var(--txt3);display:flex;flex-wrap:wrap;gap:4px;}
+.lib-tag{padding:2px 7px;border-radius:10px;background:var(--gold-xl);color:var(--gold);font-size:9px;}
+.lib-play{float:right;font-size:18px;}
+/* 耳トレ */
+.quiz-card{background:var(--card);border:2px solid var(--bor2);border-radius:var(--r);padding:20px;text-align:center;margin-bottom:12px;}
+.quiz-q{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:16px;line-height:1.6;}
+.quiz-choices{display:flex;flex-direction:column;gap:8px;}
+.qc-btn{padding:12px;border-radius:var(--r2);border:1.5px solid var(--bor2);background:var(--bg3);color:var(--txt);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.qc-btn.correct{border-color:var(--grn);background:var(--grn-xl);color:var(--grn);}
+.qc-btn.wrong{border-color:var(--red);background:rgba(239,68,68,.1);color:var(--red);}
+.score-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.score-num{font-size:28px;font-weight:900;color:var(--gold);}
+.score-lbl{font-size:11px;color:var(--txt3);}
+.streak{font-size:14px;font-weight:700;color:var(--pink);}
+/* 成長 */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.stat-card{background:var(--card);border:1.5px solid var(--bor);border-radius:var(--r2);padding:12px;text-align:center;}
+.stat-num{font-size:28px;font-weight:900;color:var(--gold);}
+.stat-lbl{font-size:10px;color:var(--txt3);margin-top:2px;}
+.mastered-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bor);}
+.mastered-chord{font-size:14px;font-weight:700;color:var(--txt);width:60px;}
+.mastered-bar{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.mastered-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:3px;}
+.mastered-cnt{font-size:10px;color:var(--txt3);width:40px;text-align:right;}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--gold2);color:#000;padding:8px 18px;border-radius:20px;font-size:11px;font-weight:700;z-index:9999;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;}
+#toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="hdr-title">MUSIC TRAINER</div>
+    <div style="font-size:9px;color:var(--txt3);">コード解析・耳トレ・作曲スキルを育てる</div>
+  </div>
+  <div id="hdr-score" style="font-size:11px;color:var(--gold);font-weight:700;"></div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" id="t1" onclick="switchTab(1)"><span class="ti">🔍</span>解析</button>
+  <button class="tab" id="t2" onclick="switchTab(2)"><span class="ti">📚</span>ライブラリ</button>
+  <button class="tab" id="t3" onclick="switchTab(3)"><span class="ti">👂</span>耳トレ</button>
+  <button class="tab" id="t4" onclick="switchTab(4)"><span class="ti">📈</span>成長</button>
+</div>
+
+<!-- 解析 -->
+<div id="s1" class="screen show">
+  <div class="scroll">
+    <div class="upload-area" onclick="document.getElementById('audio-file').click()">
+      <div class="upload-ico">🎵</div>
+      <div class="upload-txt">好きな曲をアップ<br>MP3 / WAV / M4A</div>
+      <input type="file" id="audio-file" accept="audio/*" style="display:none;" onchange="analyzeAudio(this)">
+    </div>
+    <div id="analyzing" style="display:none;">
+      <div class="progress-ring">
+        <svg width="80" height="80"><circle class="ring-bg" cx="40" cy="40" r="35"/><circle class="ring-fill" id="ring-fill" cx="40" cy="40" r="35"/></svg>
+        <div class="ring-txt" id="ring-pct">0%</div>
+      </div>
+      <div class="freq-bar"><canvas id="freq-canvas"></canvas></div>
+      <div style="text-align:center;font-size:11px;color:var(--txt2);" id="analyze-status">周波数を解析中...</div>
+    </div>
+    <div id="analyze-result" style="display:none;">
+      <div class="result-chord">
+        <div class="result-chord-name" id="r-chord">C → Am → F → G</div>
+        <div class="result-chord-sub" id="r-chord-name">王道J-Popコード進行</div>
+      </div>
+      <div class="card">
+        <div class="card-title">AI解析結果</div>
+        <div id="r-detail" style="font-size:12px;color:var(--txt2);line-height:1.9;"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">感情ラベルを付ける</div>
+        <div class="emotion-tags" id="emotion-tags"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">ライブラリに追加</div>
+        <input id="lib-name-inp" placeholder="この進行の名前（例：王道J-Pop）" style="width:100%;padding:10px;background:var(--bg3);border:1.5px solid var(--bor);border-radius:var(--r2);color:var(--txt);font-size:12px;font-family:inherit;outline:none;margin-bottom:8px;">
+        <button class="btn btn-gold btn-full" onclick="saveToLibrary()">📚 ライブラリに保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ライブラリ -->
+<div id="s2" class="screen">
+  <div class="scroll">
+    <div style="font-size:11px;color:var(--txt3);margin-bottom:10px;" id="lib-count">0件のコード進行</div>
+    <div id="lib-list"></div>
+    <div class="card" style="margin-top:8px;">
+      <div class="card-title">よく使う定番進行</div>
+      <div id="preset-lib"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 耳トレ -->
+<div id="s3" class="screen">
+  <div class="scroll">
+    <div class="score-bar">
+      <div>
+        <div class="score-num" id="quiz-score">0</div>
+        <div class="score-lbl">正解数</div>
+      </div>
+      <div style="margin-left:16px;">
+        <div class="streak" id="quiz-streak">🔥 0連続</div>
+        <div class="score-lbl">連続正解</div>
+      </div>
+      <div style="margin-left:auto;">
+        <button class="btn btn-ghost" onclick="resetQuiz()" style="padding:7px 12px;font-size:10px;">リセット</button>
+      </div>
+    </div>
+    <div id="quiz-area">
+      <div class="quiz-card">
+        <div class="quiz-q">ライブラリにコード進行を追加すると耳トレが始まります</div>
+        <button class="btn btn-gold btn-full" onclick="switchTab(1)">音源を解析してコードを追加する</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 成長 -->
+<div id="s4" class="screen">
+  <div class="scroll">
+    <div class="stat-grid" id="stats"></div>
+    <div class="card">
+      <div class="card-title">習得済みコード進行</div>
+      <div id="mastered-list"><div style="font-size:12px;color:var(--txt3);text-align:center;padding:20px;">まだ習得したコードがありません</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">今日の作曲課題</div>
+      <div id="daily-task" style="font-size:12px;color:var(--txt2);line-height:1.9;"></div>
+      <button class="btn btn-gold btn-full" onclick="generateTask()" style="margin-top:8px;">🎵 新しい課題を生成</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var EP='https://us-central1-kensetsu-nippo-842a2.cloudfunctions.net/askAI';
+var KEY='HeartsHouse2026Key';
+var CHORD_NOTES={
+  'C':[261.63,329.63,392.00],'Cm':[261.63,311.13,392.00],
+  'D':[293.66,369.99,440.00],'Dm':[293.66,349.23,440.00],
+  'E':[329.63,415.30,493.88],'Em':[329.63,392.00,493.88],
+  'F':[349.23,440.00,523.25],'Fm':[349.23,415.30,523.25],
+  'G':[392.00,493.88,587.33],'Gm':[392.00,466.16,587.33],
+  'A':[440.00,554.37,659.25],'Am':[440.00,523.25,659.25],
+  'Bb':[233.08,293.66,349.23],'Ab':[207.65,261.63,311.13]
+};
+var EMOTIONS=['切ない','明るい','かっこいい','ロマンチック','悲しい','熱い','落ち着く','神秘的','疾走感','哀愁'];
+var PRESETS=[
+  {name:'王道J-Pop',chords:'C→Am→F→G',emotion:['明るい'],desc:'最も使われる定番'},
+  {name:'カノン進行',chords:'C→G→Am→F',emotion:['ロマンチック'],desc:'壮大・映画的'},
+  {name:'Aマイナー王道',chords:'Am→F→C→G',emotion:['切ない'],desc:'J-Popで多用'},
+  {name:'小室進行',chords:'Dm→G→C→C',emotion:['熱い'],desc:'90年代J-Pop'},
+  {name:'シティポップ',chords:'Am7→D7→Gmaj7→Cmaj7',emotion:['落ち着く'],desc:'オシャレな夜感'},
+  {name:'クリシェ進行',chords:'Am→G→F→E',emotion:['哀愁'],desc:'クラシック的な哀愁'}
+];
+
+var library=[];
+var quizScore=0;
+var quizStreak=0;
+var currentQuiz=null;
+var selectedEmotions=[];
+var currentAnalysis=null;
+var masteredCounts={};
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+var _tt;
+function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('show');},3000);}
+function switchTab(n){
+  for(var i=1;i<=4;i++){
+    document.getElementById('s'+i).classList.toggle('show',i===n);
+    document.getElementById('t'+i).classList.toggle('on',i===n);
+  }
+  if(n===2)renderLibrary();
+  if(n===3)renderQuiz();
+  if(n===4)renderStats();
+}
+
+async function callAI(prompt){
+  var r=await fetch(EP,{method:'POST',headers:{'Content-Type':'application/json','x-access-key':KEY},
+    body:JSON.stringify({model:'gemini-2.5-flash',mode:'normal',prompt:prompt,useSearch:false,useCache:false})});
+  var d=await r.json().catch(function(){return{};});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return d?.data?.text||d?.candidates?.[0]?.content?.parts?.[0]?.text||d?.text||'';
+}
+
+// 音源解析
+async function analyzeAudio(input){
+  var file=input.files[0];if(!file)return;
+  document.getElementById('analyzing').style.display='block';
+  document.getElementById('analyze-result').style.display='none';
+  var arrayBuf=await file.arrayBuffer();
+  var audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  var audioBuf=await audioCtx.decodeAudioData(arrayBuf);
+  // FFT解析
+  var analyser=audioCtx.createAnalyser();analyser.fftSize=2048;
+  var src=audioCtx.createBufferSource();src.buffer=audioBuf;
+  src.connect(analyser);analyser.connect(audioCtx.destination);
+  var canvas=document.getElementById('freq-canvas');
+  var cCtx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;
+  // 複数ポイントでFFT収集
+  var allFreqData=[];
+  var sampleCount=10;
+  var duration=audioBuf.duration;
+  var offlineCtx=new OfflineAudioContext(1,audioBuf.length,audioBuf.sampleRate);
+  var offSrc=offlineCtx.createBufferSource();offSrc.buffer=audioBuf;offSrc.connect(offlineCtx.destination);offSrc.start(0);
+  var rendered=await offlineCtx.startRendering();
+  var channelData=rendered.getChannelData(0);
+  // 周波数成分を推定
+  var dominant=[];
+  var step=Math.floor(channelData.length/sampleCount);
+  for(var si=0;si<sampleCount;si++){
+    var segment=channelData.slice(si*step,si*step+2048);
+    var maxAmp=0;var maxIdx=0;
+    for(var ki=0;ki<segment.length;ki++){if(Math.abs(segment[ki])>maxAmp){maxAmp=Math.abs(segment[ki]);maxIdx=ki;}}
+    dominant.push(Math.round(audioBuf.sampleRate/2048*maxIdx));
+    var pct=(si/sampleCount)*100;
+    document.getElementById('ring-pct').textContent=Math.round(pct)+'%';
+    document.getElementById('ring-fill').style.strokeDashoffset=220-(220*pct/100);
+    // 波形描画
+    cCtx.fillStyle='#181624';cCtx.fillRect(0,0,canvas.width,canvas.height);
+    cCtx.fillStyle='#f0b830';
+    for(var bi=0;bi<canvas.width;bi++){var idx=Math.floor(bi/canvas.width*segment.length);var v=Math.abs(segment[idx]||0);cCtx.fillRect(bi,canvas.height/2,1,-v*canvas.height/2);}
+    await new Promise(function(r){setTimeout(r,50);});
+  }
+  document.getElementById('ring-pct').textContent='100%';
+  document.getElementById('ring-fill').style.strokeDashoffset='0';
+  document.getElementById('analyze-status').textContent='AIがコード進行を解析中...';
+  // AIに解析を依頼
+  try{
+    var freqInfo=dominant.filter(function(f){return f>60&&f<2000;}).slice(0,10).join('Hz, ')+'Hz';
+    var prompt='音楽の周波数解析データです。検出された主要周波数：'+freqInfo+'\nこの周波数パターンから推定されるコード進行を分析してください。\n\n以下を答えてください：\n1. 推定コード進行（例：C→Am→F→G）\n2. 進行の名前・ジャンル\n3. この進行の感情的な特徴\n4. 類似する有名な曲\n5. この進行を使った作曲のアドバイス\n\n音楽理論的な観点から、最も可能性の高いコード進行を推定してください。';
+    var aiResult=await callAI(prompt);
+    // コード進行を抽出
+    var chordMatch=aiResult.match(/[A-G][m#7]?\s*(?:\u2192|-|>)\s*[A-G][m#7]?(?:\s*(?:\u2192|-|>)\s*[A-G][m#7]?)*/);
+    var detectedChord=chordMatch?chordMatch[0]:'C→Am→F→G（推定）';
+    document.getElementById('r-chord').textContent=detectedChord;
+    document.getElementById('r-chord-name').textContent=file.name;
+    document.getElementById('r-detail').textContent=aiResult;
+    currentAnalysis={chord:detectedChord,detail:aiResult,fileName:file.name};
+    // 感情タグ
+    document.getElementById('emotion-tags').innerHTML=EMOTIONS.map(function(e){
+      return '<div class="etag" onclick="toggleEmotion(this,\''+esc(e)+'\')" data-e="'+esc(e)+'">'+esc(e)+'</div>';
+    }).join('');
+    selectedEmotions=[];
+    document.getElementById('lib-name-inp').value=detectedChord;
+    document.getElementById('analyzing').style.display='none';
+    document.getElementById('analyze-result').style.display='block';
+    // mc_chordsに保存
+    try{var mc=JSON.parse(localStorage.getItem('mc_chords')||'[]');mc.push({id:'c_'+Date.now(),name:detectedChord,code:detectedChord,source:'trainer'});localStorage.setItem('mc_chords',JSON.stringify(mc));}catch(e){}
+  }catch(e){
+    document.getElementById('analyzing').style.display='none';
+    showToast('AI解析エラー: '+e.message.slice(0,30));
+  }
+  audioCtx.close();
+}
+
+function toggleEmotion(el,e){
+  el.classList.toggle('sel');
+  var idx=selectedEmotions.indexOf(e);
+  if(idx>=0)selectedEmotions.splice(idx,1);else selectedEmotions.push(e);
+}
+
+function saveToLibrary(){
+  if(!currentAnalysis){showToast('先に音源を解析してください');return;}
+  var name=document.getElementById('lib-name-inp').value.trim()||currentAnalysis.chord;
+  var item={id:'lib_'+Date.now(),name:name,chords:currentAnalysis.chord,emotions:selectedEmotions.slice(),detail:currentAnalysis.detail,addedAt:new Date().toLocaleString('ja-JP'),correct:0,attempts:0};
+  library.push(item);saveLib();
+  showToast('「'+name+'」をライブラリに追加しました');
+  renderLibrary();
+}
+
+// ライブラリ
+function renderLibrary(){
+  var html='';
+  library.forEach(function(item,i){
+    html+='<div class="lib-item">'
+      +'<div class="lib-play" onclick="playChordLib(\''+esc(item.chords)+'\')">▶</div>'
+      +'<div class="lib-name">'+esc(item.name)+'</div>'
+      +'<div style="font-size:11px;color:var(--txt2);margin:3px 0;">'+esc(item.chords)+'</div>'
+      +'<div class="lib-meta">'
+      +item.emotions.map(function(e){return '<span class="lib-tag">'+esc(e)+'</span>';}).join('')
+      +'<span style="margin-left:auto;font-size:9px;color:var(--txt3);">正解率 '+(item.attempts>0?Math.round(item.correct/item.attempts*100):0)+'%</span>'
+      +'</div></div>';
+  });
+  document.getElementById('lib-list').innerHTML=html||'<div style="font-size:12px;color:var(--txt3);text-align:center;padding:20px;">音源を解析してコードを追加してください</div>';
+  document.getElementById('lib-count').textContent=library.length+'件のコード進行';
+  // プリセット
+  document.getElementById('preset-lib').innerHTML=PRESETS.map(function(p){
+    return '<div class="lib-item" style="margin-bottom:6px;">'
+      +'<div class="lib-play" onclick="playChordLib(\''+esc(p.chords)+'\')">▶</div>'
+      +'<div class="lib-name">'+esc(p.name)+'</div>'
+      +'<div style="font-size:11px;color:var(--txt2);margin:2px 0;">'+esc(p.chords)+'</div>'
+      +'<div class="lib-meta"><span style="font-size:9px;color:var(--txt3);">'+esc(p.desc)+'</span></div>'
+      +'<button class="btn btn-ghost" onclick="addPresetToLib('+PRESETS.indexOf(p)+')" style="margin-top:6px;padding:5px 10px;font-size:9px;width:100%;">追加</button>'
+      +'</div>';
+  }).join('');
+}
+
+function addPresetToLib(idx){
+  var p=PRESETS[idx];
+  if(library.find(function(l){return l.chords===p.chords;})){showToast('すでに追加済みです');return;}
+  library.push({id:'lib_'+Date.now(),name:p.name,chords:p.chords,emotions:p.emotion,detail:p.desc,addedAt:new Date().toLocaleString('ja-JP'),correct:0,attempts:0});
+  saveLib();renderLibrary();showToast('「'+p.name+'」を追加しました');
+}
+
+function playChordLib(chordsStr){
+  var chords=chordsStr.split(/[→\->]+/).map(function(c){return c.trim();});
+  var ctx=new(window.AudioContext||window.webkitAudioContext)();
+  var t=ctx.currentTime+0.05;
+  chords.forEach(function(c,i){
+    var notes=CHORD_NOTES[c]||CHORD_NOTES['C'];
+    notes.forEach(function(freq){
+      var o=ctx.createOscillator();var g=ctx.createGain();
+      o.type='sine';o.frequency.value=freq;
+      g.gain.setValueAtTime(0,t+i);g.gain.linearRampToValueAtTime(.12,t+i+.05);
+      g.gain.linearRampToValueAtTime(.12,t+i+.8);g.gain.linearRampToValueAtTime(0,t+i+1);
+      o.connect(g);g.connect(ctx.destination);o.start(t+i);o.stop(t+i+1);
+    });
+  });
+  setTimeout(function(){ctx.close();},chords.length*1000+500);
+}
+
+// 耳トレ
+function renderQuiz(){
+  var allItems=library.concat(PRESETS.map(function(p){return {id:p.name,name:p.name,chords:p.chords,emotions:p.emotion,correct:0,attempts:0};}));
+  if(allItems.length<3){
+    document.getElementById('quiz-area').innerHTML='<div class="quiz-card"><div class="quiz-q">コード進行を3つ以上追加すると耳トレが始まります</div><button class="btn btn-gold btn-full" onclick="switchTab(1)">音源を解析する</button></div>';
+    return;
+  }
+  var correct=allItems[Math.floor(Math.random()*allItems.length)];
+  var wrongs=allItems.filter(function(i){return i.chords!==correct.chords;});
+  var shuffleArr=wrongs.sort(function(){return Math.random()-.5;}).slice(0,2);
+  shuffleArr.push(correct);
+  shuffleArr=shuffleArr.sort(function(){return Math.random()-.5;});
+  currentQuiz={correct:correct,choices:shuffleArr};
+  var html='<div class="quiz-card">'
+    +'<div class="quiz-q">この音を聴いてコード進行を当ててください</div>'
+    +'<button class="btn btn-ghost btn-full" onclick="playChordLib(\''+esc(correct.chords)+'\')" style="margin-bottom:12px;">▶ 音を聴く</button>'
+    +'<div class="quiz-choices">';
+  shuffleArr.forEach(function(item){
+    html+='<button class="qc-btn" onclick="answerQuiz(\''+esc(item.chords)+'\',this)">'+esc(item.name)+'<br><span style="font-size:10px;color:var(--txt3);">'+esc(item.chords)+'</span></button>';
+  });
+  html+='</div></div>';
+  document.getElementById('quiz-area').innerHTML=html;
+  updateScoreDisplay();
+}
+
+function answerQuiz(chords,btn){
+  if(!currentQuiz)return;
+  var isCorrect=chords===currentQuiz.correct.chords;
+  document.querySelectorAll('.qc-btn').forEach(function(b){b.disabled=true;});
+  btn.classList.add(isCorrect?'correct':'wrong');
+  document.querySelectorAll('.qc-btn').forEach(function(b){
+    var txt=b.querySelector('span').textContent;
+    if(txt.trim()===currentQuiz.correct.chords) b.classList.add('correct');
+  });
+  if(isCorrect){quizScore++;quizStreak++;if(!masteredCounts[currentQuiz.correct.name])masteredCounts[currentQuiz.correct.name]=0;masteredCounts[currentQuiz.correct.name]++;showToast('正解！🎉');}
+  else{quizStreak=0;showToast('不正解... 正解は「'+currentQuiz.correct.name+'」');}
+  var libItem=library.find(function(l){return l.chords===currentQuiz.correct.chords;});
+  if(libItem){libItem.attempts++;if(isCorrect)libItem.correct++;saveLib();}
+  updateScoreDisplay();saveMastered();
+  setTimeout(function(){renderQuiz();},1500);
+}
+
+function updateScoreDisplay(){
+  document.getElementById('quiz-score').textContent=quizScore;
+  document.getElementById('quiz-streak').textContent='🔥 '+quizStreak+'連続';
+  document.getElementById('hdr-score').textContent='Score: '+quizScore;
+}
+function resetQuiz(){quizScore=0;quizStreak=0;updateScoreDisplay();renderQuiz();}
+
+// 成長
+function renderStats(){
+  var totalChords=library.length+PRESETS.length;
+  var masteredChords=Object.keys(masteredCounts).filter(function(k){return masteredCounts[k]>=10;}).length;
+  var totalCorrect=library.reduce(function(a,l){return a+l.correct;},0);
+  var totalAttempts=library.reduce(function(a,l){return a+l.attempts;},0);
+  document.getElementById('stats').innerHTML=
+    '<div class="stat-card"><div class="stat-num">'+totalChords+'</div><div class="stat-lbl">登録済みコード</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+masteredChords+'</div><div class="stat-lbl">習得済み</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+quizScore+'</div><div class="stat-lbl">総正解数</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+(totalAttempts>0?Math.round(totalCorrect/totalAttempts*100):0)+'%</div><div class="stat-lbl">平均正解率</div></div>';
+  var mastHtml='';
+  var allForMastered=library.concat(PRESETS.map(function(p){return {name:p.name,chords:p.chords};}));
+  allForMastered.slice(0,10).forEach(function(item){
+    var cnt=masteredCounts[item.name]||0;
+    var pct=Math.min(100,cnt/10*100);
+    mastHtml+='<div class="mastered-item">'
+      +'<div class="mastered-chord">'+esc(item.name.slice(0,8))+'</div>'
+      +'<div class="mastered-bar"><div class="mastered-fill" style="width:'+pct+'%"></div></div>'
+      +'<div class="mastered-cnt">'+cnt+'/10</div></div>';
+  });
+  document.getElementById('mastered-list').innerHTML=mastHtml||'<div style="font-size:12px;color:var(--txt3);text-align:center;padding:20px;">耳トレを続けると記録されます</div>';
+}
+
+async function generateTask(){
+  var mastered=Object.keys(masteredCounts).filter(function(k){return masteredCounts[k]>=3;});
+  var taskEl=document.getElementById('daily-task');
+  taskEl.textContent='課題を生成中...';
+  try{
+    var libNames=library.map(function(l){return l.name+'('+l.chords+')';}).join('、');
+    var prompt='音楽トレーニング中のユーザーへの今日の作曲課題を1つ生成してください。\n習得済みコード：'+mastered.join('、')+'\n登録済みコード：'+libNames+'\n\n課題の形式：\n・Aメロ・Bメロ・サビのコード進行を指定\n・各セクションの雰囲気を1行で説明\n・難易度を初級〜上級で表示\n・具体的なアドバイスを1行\n\n100文字程度でコンパクトに。';
+    var task=await callAI(prompt);
+    taskEl.textContent=task;
+  }catch(e){taskEl.textContent='エラーが発生しました。もう一度お試しください。';}
+}
+
+function saveLib(){try{localStorage.setItem('music_trainer_lib',JSON.stringify(library));}catch(e){}}
+function saveMastered(){try{localStorage.setItem('music_trainer_mastered',JSON.stringify(masteredCounts));}catch(e){}}
+function loadData(){
+  try{library=JSON.parse(localStorage.getItem('music_trainer_lib')||'[]');}catch(e){library=[];}
+  try{masteredCounts=JSON.parse(localStorage.getItem('music_trainer_mastered')||'{}');}catch(e){masteredCounts={};}
+}
+
+// 初期化
+loadData();
+renderLibrary();
+</script>
+</body>
+</html>
