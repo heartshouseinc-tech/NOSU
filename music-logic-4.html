@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>MUSIC LOGIC</title>
+<style>
+:root{
+  --bg:#0d0b14;--bg2:#13101e;--bg3:#1a1628;
+  --card:#1a1628;--bor:rgba(160,120,255,.12);--bor2:rgba(160,120,255,.25);
+  --pur:#7c3aed;--pur2:#a855f7;--pur-xl:rgba(124,58,237,.12);
+  --gold:#f0b830;--gold2:#d4960a;--gold-xl:rgba(240,184,48,.1);
+  --grn:#10b981;--grn-xl:rgba(16,185,129,.1);
+  --red:#ef4444;--txt:#f0eeff;--txt2:#a090c8;--txt3:#605080;
+  --r:12px;--r2:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--txt);font-family:'Hiragino Sans','Noto Sans JP',sans-serif;min-height:100vh;}
+.hdr{background:var(--bg2);border-bottom:1px solid var(--bor);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+.hdr-title{font-size:16px;font-weight:900;background:linear-gradient(90deg,var(--pur2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-links{display:flex;gap:6px;}
+.nav-btn{padding:5px 10px;border-radius:20px;border:1.5px solid var(--bor2);background:transparent;color:var(--txt2);font-size:10px;cursor:pointer;text-decoration:none;display:flex;align-items:center;}
+.tabs{display:flex;border-bottom:1px solid var(--bor);background:var(--bg2);}
+.tab{flex:1;padding:10px 4px;border:none;background:none;color:var(--txt3);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;}
+.tab.on{color:var(--pur2);border-bottom:2px solid var(--pur2);margin-bottom:-1px;}
+.main{padding:14px;max-width:600px;margin:0 auto;}
+.card{background:var(--card);border:1.5px solid var(--bor);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+.card-lbl{font-size:10px;font-weight:700;color:var(--txt3);letter-spacing:.5px;margin-bottom:8px;}
+.inp{width:100%;padding:10px 12px;background:var(--bg3);border:1.5px solid var(--bor);border-radius:var(--r2);color:var(--txt);font-size:12px;font-family:inherit;outline:none;margin-bottom:8px;}
+.inp:focus{border-color:var(--pur);}
+.ta{width:100%;padding:10px 12px;background:var(--bg3);border:1.5px solid var(--bor);border-radius:var(--r2);color:var(--txt);font-size:11px;font-family:inherit;outline:none;resize:none;line-height:1.7;margin-bottom:8px;}
+.ta:focus{border-color:var(--pur);}
+.btn{padding:10px 14px;border-radius:var(--r2);border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-pur{background:linear-gradient(135deg,var(--pur),var(--pur2));color:#fff;}
+.btn-gold{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#000;}
+.btn-ghost{background:var(--bg3);border:1.5px solid var(--bor2);color:var(--txt2);}
+.btn-full{width:100%;}
+.btn-row{display:flex;gap:6px;}
+.item-card{background:var(--bg3);border:1.5px solid var(--bor);border-radius:var(--r2);padding:12px;margin-bottom:8px;}
+.item-name{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:4px;}
+.item-body{font-size:11px;color:var(--txt2);line-height:1.7;margin-bottom:6px;}
+.item-tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;margin-right:4px;background:var(--pur-xl);color:var(--pur2);}
+.item-actions{display:flex;gap:6px;margin-top:6px;}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+.stat-box{background:var(--bg3);border-radius:var(--r2);padding:10px;text-align:center;}
+.stat-n{font-size:22px;font-weight:900;color:var(--gold);}
+.stat-l{font-size:9px;color:var(--txt3);margin-top:2px;}
+.empty{text-align:center;padding:30px;color:var(--txt3);font-size:12px;}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1.5px solid var(--bor2);color:var(--txt);padding:8px 18px;border-radius:20px;font-size:11px;font-weight:700;z-index:9999;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;}
+#toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="hdr-title">📚 MUSIC LOGIC</div>
+    <div style="font-size:9px;color:var(--txt3);">作曲ロジックデータベース</div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-btn" href="music-research.html">🔭</a>
+    <a class="nav-btn" href="music-chat.html">💬</a>
+    <a class="nav-btn" href="suno-craft.html">⚡</a>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" onclick="goTab('chords',this)">🎵 コード進行</button>
+  <button class="tab" onclick="goTab('genres',this)">🎸 ジャンル法則</button>
+  <button class="tab" onclick="goTab('prompts',this)">⚡ 成功プロンプト</button>
+  <button class="tab" onclick="goTab('add',this)">➕ 追加</button>
+</div>
+
+<div class="main">
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-n" id="st-c">0</div><div class="stat-l">コード進行</div></div>
+    <div class="stat-box"><div class="stat-n" id="st-g">0</div><div class="stat-l">ジャンル法則</div></div>
+    <div class="stat-box"><div class="stat-n" id="st-p">0</div><div class="stat-l">成功プロンプト</div></div>
+    <div class="stat-box"><div class="stat-n" id="st-h">0</div><div class="stat-l">作曲履歴</div></div>
+  </div>
+
+  <!-- コード進行タブ -->
+  <div id="pg-chords">
+    <div id="chords-list"></div>
+  </div>
+
+  <!-- ジャンル法則タブ -->
+  <div id="pg-genres" style="display:none;">
+    <div id="genres-list"></div>
+  </div>
+
+  <!-- 成功プロンプトタブ -->
+  <div id="pg-prompts" style="display:none;">
+    <div id="prompts-list"></div>
+  </div>
+
+  <!-- 追加タブ -->
+  <div id="pg-add" style="display:none;">
+    <div class="card">
+      <div class="card-lbl">種類を選ぶ</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px;">
+        <button class="btn btn-ghost" id="add-type-chord" onclick="setAddType('chord')" style="font-size:11px;">🎵 コード進行</button>
+        <button class="btn btn-ghost" id="add-type-genre" onclick="setAddType('genre')" style="font-size:11px;">🎸 ジャンル法則</button>
+        <button class="btn btn-ghost" id="add-type-prompt" onclick="setAddType('prompt')" style="font-size:11px;">⚡ 成功プロンプト</button>
+      </div>
+      <input class="inp" id="add-name" placeholder="名前（例：王道進行・J-Pop夜系の法則）">
+      <textarea class="ta" id="add-body" rows="4" placeholder="内容を入力&#10;例：Ⅳ→Ⅴ→Ⅲm→Ⅵmの循環。明るい切なさ。BPM120前後が効果的。"></textarea>
+      <input class="inp" id="add-tags" placeholder="タグ（カンマ区切り：J-Pop,切ない,王道）">
+      <button class="btn btn-pur btn-full" onclick="saveItem()">💾 保存する</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ══ 初期データ（内蔵済み） ══
+const DEFAULT_CHORDS=[
+  {id:'c1',name:'王道進行（Ⅳ→Ⅴ→Ⅲm→Ⅵm）',tags:['J-Pop','切ない','王道'],
+   body:'日本で最も使われるコード進行。明るい切なさ。BPM120〜140。サビに最適。\nSuno指定例：major key, emotional, J-Pop progression, anthemic chorus'},
+  {id:'c2',name:'小室進行（Ⅵm→Ⅳ→Ⅴ→Ⅰ）',tags:['J-Pop','ダーク','90年代'],
+   body:'小室哲哉が多用。ダークな切なさ・疾走感。BPM140〜160。アニソンにも応用可。\nSuno指定例：dark J-Pop, 90s nostalgia, minor feel, driving beat'},
+  {id:'c3',name:'カノン進行（Ⅰ→Ⅴ→Ⅵm→Ⅲm→Ⅳ→Ⅰ→Ⅳ→Ⅴ）',tags:['壮大','感動','バラード'],
+   body:'パッヘルベルのカノンが元。壮大で感動的。バラード・アニソンの大サビに効果大。\nSuno指定例：orchestral, sweeping, emotional buildup, soaring chorus'},
+  {id:'c4',name:'循環コード（Ⅰ→Ⅵm→Ⅳ→Ⅴ）',tags:['明るい','ポップ','汎用'],
+   body:'最もシンプルで汎用性が高い。明るいポップスに最適。\nSuno指定例：upbeat, cheerful, pop, straightforward'},
+  {id:'c5',name:'Ⅱ-Ⅴ-Ⅰ進行（ジャズ）',tags:['ジャズ','おしゃれ','テンション'],
+   body:'ジャズの基本。テンションコードを加えるとよりおしゃれに。シティポップにも応用。\nSuno指定例：jazz-influenced, sophisticated, smooth, jazz chords'},
+  {id:'c6',name:'フラットⅦ進行（ロック）',tags:['ロック','力強い','シンプル'],
+   body:'Ⅰ→♭Ⅶ→Ⅳの繰り返し。ロックの力強さ。パワーコードで弾くと映える。\nSuno指定例：rock, power chords, driving, anthem'},
+  {id:'c7',name:'マイナー系（Ⅵm→Ⅳ→Ⅰ→Ⅴ）',tags:['切ない','マイナー','夜系'],
+   body:'純粋なマイナー感。夜・孤独・切なさに最適。シティポップの夜系曲に多い。\nSuno指定例：minor key, melancholic, night theme, introspective'},
+  {id:'c8',name:'クリシェ進行（半音ずつ下降）',tags:['感動','映画的','特殊'],
+   body:'Ⅰ→Ⅰ/Ⅶ→Ⅰ/♭Ⅶ→Ⅰ/Ⅵ。半音ずつ下がる特殊進行。感動的な場面に効果大。\nSuno指定例：cinematic, emotional descent, bittersweet, orchestral'},
+];
+
+const DEFAULT_GENRES=[
+  {id:'g1',name:'J-Popの法則',tags:['J-Pop'],
+   body:'・BPM：110〜140が黄金帯\n・構成：Aメロ（静）→Bメロ（盛り上がり）→サビ（爆発）\n・転調：サビで半音〜全音上げると感動度UP\n・歌詞：日本語で情景描写→感情表現の順\n・Suno鉄則：female vocal + emotional + piano-drivenが外れにくい'},
+  {id:'g2',name:'アニソンの法則',tags:['アニソン'],
+   body:'・BPM：140〜170（疾走感重視）\n・構成：短いイントロ→即Aメロ→爆発サビ\n・特徴：歌い出しがサビから始まる曲も多い\n・Suno指定：anime style, driving beat, soaring female vocals, intense chorus\n・キーワード：epic, powerful, dramatic'},
+  {id:'g3',name:'シティポップの法則',tags:['シティポップ','80年代'],
+   body:'・BPM：90〜120（ゆったり目）\n・コード：maj7・9th等のテンションコード多用\n・楽器：エレキベース強め・シンセ・サックス\n・雰囲気：夜・都会・大人・切ない\n・Suno指定：city pop, 80s Japanese, nostalgic, smooth, late night'},
+  {id:'g4',name:'ボカロの法則',tags:['ボカロ'],
+   body:'・BPM：150〜200（超高速も多い）\n・音域：広い・超高音・裏声多用\n・歌詞：内向き・孤独・社会批判・ファンタジー\n・構成：複雑・転調多い・間奏長い\n・Suno指定：vocaloid style, high BPM, complex melody, emotional female'},
+  {id:'g5',name:'バラードの法則',tags:['バラード','感動'],
+   body:'・BPM：60〜90（遅い）\n・始まり：ピアノソロorアカペラから\n・サビ前：完全に静かにしてから爆発\n・[Silence]の活用が効果的\n・Suno指定：ballad, piano-led, intimate verse, explosive emotional chorus'},
+];
+
+const DEFAULT_PROMPTS=[
+  {id:'p1',name:'夜ドライブシティポップ',tags:['シティポップ','夜'],
+   body:'Style: city pop, 80s nostalgic, female vocal, driving bass, melancholic, night drive, synth-heavy, emotional（87文字）\n★成功パターン：この組み合わせは高確率で神曲'},
+  {id:'p2',name:'疾走感アニソン',tags:['アニソン','疾走'],
+   body:'Style: J-Pop, alternative pop-rock, 166 BPM, aggressive guitar riffs, intense female screaming vocals, dark, rebellious（113文字）\n★成功パターン：サビで完全爆発する'},
+  {id:'p3',name:'感動バラード',tags:['バラード','感動'],
+   body:'Style: Japanese indie pop, 95 BPM, piano-driven, male falsetto vocals, intimate verse, explosive chorus, emotional contrast（115文字）\n★成功パターン：静と動のコントラストが映える'},
+];
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+var _tt;
+function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),3000);}
+
+function getDB(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch{return null;}}
+function setDB(k,d){localStorage.setItem(k,JSON.stringify(d));}
+
+// 初回はデフォルトデータを注入
+function initDefaults(){
+  if(!getDB('mc_chords')) setDB('mc_chords',DEFAULT_CHORDS);
+  if(!getDB('mc_genres')) setDB('mc_genres',DEFAULT_GENRES);
+  if(!getDB('mc_prompts')) setDB('mc_prompts',DEFAULT_PROMPTS);
+}
+
+function updateStats(){
+  document.getElementById('st-c').textContent=(getDB('mc_chords')||[]).length;
+  document.getElementById('st-g').textContent=(getDB('mc_genres')||[]).length;
+  document.getElementById('st-p').textContent=(getDB('mc_prompts')||[]).length;
+  document.getElementById('st-h').textContent=(getDB('mc_history')||[]).length;
+}
+
+// ══ タブ ══
+var curTab='chords';
+function goTab(name,btn){
+  ['chords','genres','prompts','add'].forEach(n=>{
+    document.getElementById('pg-'+n).style.display=n===name?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  curTab=name;
+  if(name==='chords') renderList('chords');
+  if(name==='genres') renderList('genres');
+  if(name==='prompts') renderList('prompts');
+}
+
+function renderList(type){
+  var keyMap={chords:'mc_chords',genres:'mc_genres',prompts:'mc_prompts'};
+  var elMap={chords:'chords-list',genres:'genres-list',prompts:'prompts-list'};
+  var db=getDB(keyMap[type])||[];
+  var el=document.getElementById(elMap[type]);
+  if(!db.length){el.innerHTML='<div class="empty">データがありません<br>「追加」タブから追加するか<br>RESEARCHで自動収集してください</div>';return;}
+
+  // research由来データも表示
+  if(type==='chords'){
+    var research=(getDB('mc_research')||[]).filter(r=>r.cat==='コード進行');
+    research.forEach(r=>{
+      if(!db.find(d=>d.id==='r_'+r.topicId)){
+        db.push({id:'r_'+r.topicId,name:'[自動収集] '+r.name,body:r.content,tags:['自動収集'],auto:true});
+      }
+    });
+  }
+
+  el.innerHTML=db.map(function(item){
+    return '<div class="item-card">'
+      +'<div class="item-name">'+esc(item.name||'')+'</div>'
+      +(item.tags||[]).map(t=>'<span class="item-tag">'+esc(t)+'</span>').join('')
+      +'<div class="item-body" style="margin-top:6px;">'+esc((item.body||'').slice(0,200))+(item.body&&item.body.length>200?'...':'')+'</div>'
+      +'<div class="item-actions">'
+      +'<button class="btn btn-ghost" onclick="copyItem(\''+esc(item.body||'')+'\',this)" style="font-size:10px;padding:5px 10px;">📋 コピー</button>'
+      +(item.auto?'':'<button class="btn btn-ghost" onclick="deleteItem(\''+type+'\',\''+item.id+'\',this)" style="font-size:10px;padding:5px 10px;color:var(--red);">削除</button>')
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function copyItem(text,btn){
+  if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✅ コピー済';setTimeout(()=>btn.textContent='📋 コピー',2000);
+  });
+}
+
+function deleteItem(type,id,btn){
+  if(!confirm('削除しますか？'))return;
+  var keyMap={chords:'mc_chords',genres:'mc_genres',prompts:'mc_prompts'};
+  var db=(getDB(keyMap[type])||[]).filter(i=>i.id!==id);
+  setDB(keyMap[type],db);
+  updateStats();renderList(type);
+  showToast('削除しました');
+}
+
+// ══ 追加 ══
+var addType='chord';
+function setAddType(t){
+  addType=t;
+  ['chord','genre','prompt'].forEach(n=>{
+    var btn=document.getElementById('add-type-'+n);
+    if(btn) btn.className='btn '+(n===t?'btn-pur':'btn-ghost');
+  });
+}
+
+function saveItem(){
+  var name=document.getElementById('add-name').value.trim();
+  var body=document.getElementById('add-body').value.trim();
+  var tags=document.getElementById('add-tags').value.split(',').map(s=>s.trim()).filter(Boolean);
+  if(!name||!body){showToast('名前と内容を入力してください');return;}
+  var keyMap={chord:'mc_chords',genre:'mc_genres',prompt:'mc_prompts'};
+  var key=keyMap[addType];
+  var db=getDB(key)||[];
+  db.push({id:'u_'+Date.now(),name,body,tags,addedAt:new Date().toLocaleString('ja-JP')});
+  setDB(key,db);
+  document.getElementById('add-name').value='';
+  document.getElementById('add-body').value='';
+  document.getElementById('add-tags').value='';
+  updateStats();
+  showToast('✅ 保存しました');
+  var tabMap={chord:'chords',genre:'genres',prompt:'prompts'};
+  goTab(tabMap[addType],null);
+}
+
+// 初期化
+initDefaults();
+updateStats();
+renderList('chords');
+setAddType('chord');
+</script>
+</body>
+</html>
